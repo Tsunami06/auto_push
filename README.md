@@ -191,7 +191,7 @@ auto_push/
 | --- | --- |
 | `onlyActiveRepos` | 只展示当天有提交 / 有改动 / 有待推送的仓库 |
 | `fileListLimit` | 每个仓库最多列多少个未提交文件 |
-| `authorFilter` | `git --author` 正则；留空 = 全局 `user.email`。需要同时匹配多个身份时写 `a@x\|b@y` |
+| `authorFilter` | 多个作者用 `|` 分隔（会拆成多个 `git --author`，OR 关系）；留空 = 全局 `user.email` |
 
 ### mail
 
