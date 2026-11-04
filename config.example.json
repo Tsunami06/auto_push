@@ -1,0 +1,110 @@
+{
+    "version":  1,
+    "mail":  {
+                 "_note":  "发信通道：agently-cli。nodeExe + agentlyJs 是 CLI 的真实入口，避免 .cmd 包装带来的引号问题。",
+                 "nodeExe":  "C:\\Program Files\\nodejs\\node.exe",
+                 "agentlyJs":  "C:\\Program Files\\nodejs\\node_modules\\@tencent-qqmail\\agently-cli\\scripts\\run.js",
+                 "from":  "your-agent@agent.qq.com",
+                 "to":  [
+                            "you@example.com"
+                        ],
+                 "autoConfirm":  true,
+                 "sendMorningResult":  true,
+                 "reportSubject":  "【每日工作报告】{date}｜今日提交 {commits} 个 · 未提交 {pending} 个文件",
+                 "morningSubject":  "【自动推送】{date}｜成功 {pushed} 个仓库 · 失败 {failed} 个"
+             },
+    "scope":  {
+                  "_note":  "只管理 repos 里显式列出的仓库（autoDiscover 关闭）。路径改成你自己的 git 仓库；不是 git 仓库或路径不存在的条目会被跳过，并在日志/报告里明确列出。",
+                  "repos":  [
+                                "E:\\auto_push",
+                                "E:\\path\\to\\repo-a",
+                                "E:\\path\\to\\repo-b"
+                            ],
+                  "autoDiscover":  {
+                                       "enabled":  false,
+                                       "roots":  [
+                                                     "E:\\code"
+                                                 ],
+                                       "maxDepth":  2
+                                   },
+                  "excludeNamePatterns":  [
+                                              "*-wt-*",
+                                              "node_modules",
+                                              ".pnpm-store"
+                                          ],
+                  "excludePaths":  [
+                                       "E:\\code\\tmp"
+                                   ],
+                  "maxRepos":  100
+              },
+    "report":  {
+                   "_note":  "onlyActiveRepos=true 时，只有当天有提交、当天有改动或有待推送提交的仓库才出现在报告里。fileListLimit 控制每个仓库最多列多少个未提交文件。authorFilter 留空时使用全局 git user.email；需要同时匹配多个作者时填正则（如 a@x|b@y）。",
+                   "onlyActiveRepos":  true,
+                   "fileListLimit":  40,
+                   "authorFilter":  ""
+               },
+    "push":  {
+                 "_note":  "mode=active：只对「当天有活动」的仓库自动提交推送；mode=all：所有仓库有改动就推。",
+                 "mode":  "active",
+                 "remote":  "origin",
+                 "pushTimeoutSeconds":  180,
+                 "guard":  {
+                               "_note":  "构建产物 / IDE 与工具配置不参与自动提交；maxFiles 超过则整个仓库跳过，避免一次性误提交大量文件。",
+                               "excludePathPatterns":  [
+                                                           "target/**",
+                                                           ".idea/**",
+                                                           ".vscode/**",
+                                                           ".cursor/**",
+                                                           ".dsh_tmp/**",
+                                                           "**/node_modules/**",
+                                                           "*.class",
+                                                           "*.jar",
+                                                           "*.war",
+                                                           "*.log"
+                                                       ],
+                               "maxFiles":  100
+                           },
+                 "commitMessage":  {
+                                       "_note":  "provider=cursor 时调用本机 cursor-agent 生成 Conventional Commits 消息；失败自动回退到模板。maxDiffChars 受 Windows 命令行 32K 限制约束。cursorAgentHome 留空时自动在 %LOCALAPPDATA%\\cursor-agent 下查找。",
+                                       "provider":  "cursor",
+                                       "language":  "zh",
+                                       "timeoutSeconds":  240,
+                                       "maxDiffChars":  8000,
+                                       "cursorAgentHome":  ""
+                                   }
+             },
+    "approval":  {
+                     "_note":  "确认制：00:00 报告邮件只做展示；07:00 根据你的文字回信决定是否推送，默认不提交。回复「提交」放行全部，「提交 项目名」放行单个，「不提交」跳过。",
+                     "enabled":  true,
+                     "mode":  "required",
+                     "pushTimeLabel":  "07:00",
+                     "mailKeywords":  [
+                                          "提交",
+                                          "放行",
+                                          "暂停",
+                                          "取消"
+                                      ]
+                 },
+    "pause":  {
+                  "_note":  "应急开关：flagFile 存在即跳过当天全部提交推送。keywords/ failClosed 仅在 approval.mode=auto 时生效。fromAllowlist 同时用于筛选回信发件人。",
+                  "flagFile":  "state\\PAUSE",
+                  "keywords":  [
+                                   "不提交",
+                                   "别提交",
+                                   "先不提交",
+                                   "不要提交",
+                                   "暂停提交",
+                                   "暂停推送",
+                                   "取消推送",
+                                   "不推送"
+                               ],
+                  "fromAllowlist":  [
+                                        "you@example.com"
+                                    ],
+                  "confirmByMail":  true,
+                  "failClosed":  true
+              },
+    "logging":  {
+                    "keepDays":  30
+                }
+}

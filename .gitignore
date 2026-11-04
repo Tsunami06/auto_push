@@ -1,0 +1,17 @@
+# 本机运行时数据（不提交）
+state/
+logs/
+config.json
+*.lock
+
+# 临时文件
+*.log
+*.tmp
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+.cursor/
+Thumbs.db
+desktop.ini
+.DS_Store
