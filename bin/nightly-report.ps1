@@ -40,9 +40,10 @@ try {
 
     $window = Get-ReportWindow -ForDate $ForDate
     $identity = Get-MachineGitIdentity
-    $author = [string](Get-Cfg $config 'report.authorFilter' '')
-    if ([string]::IsNullOrWhiteSpace($author)) { $author = $identity.Email }
-    Write-Log ("报告窗口 {0} ~ {1}，作者过滤={2}" -f $window.Start.ToString('yyyy-MM-dd HH:mm'), $window.End.ToString('yyyy-MM-dd HH:mm'), $author)
+    $authorRaw = [string](Get-Cfg $config 'report.authorFilter' '')
+    if ([string]::IsNullOrWhiteSpace($authorRaw)) { $authorRaw = $identity.Email }
+    $authors = @($authorRaw -split '[|,;]' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    Write-Log ("报告窗口 {0} ~ {1}，作者过滤={2}" -f $window.Start.ToString('yyyy-MM-dd HH:mm'), $window.End.ToString('yyyy-MM-dd HH:mm'), ($authors -join ' | '))
 
     $repos = @(Get-WatchedRepos -Config $config)
     Write-Log ("发现仓库 {0} 个" -f $repos.Count)
@@ -54,7 +55,7 @@ try {
     $infos = [System.Collections.Generic.List[object]]::new()
     foreach ($repo in $repos) {
         try {
-            $info = Get-RepoInfo -Repo $repo.Path -Start $window.Start -End $window.End -Author $author -ExcludePatterns (Get-PushExcludePatterns -Config $config)
+            $info = Get-RepoInfo -Repo $repo.Path -Start $window.Start -End $window.End -Author $authors -ExcludePatterns (Get-PushExcludePatterns -Config $config)
         } catch {
             Write-Log ("采集失败 [{0}]: {1}" -f $repo.Name, $_.Exception.Message) 'WARN'
             continue

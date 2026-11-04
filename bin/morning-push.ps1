@@ -40,8 +40,9 @@ try {
     Write-Log ('=== 自动提交推送开始 ({0}) ===' -f $now.ToString('yyyy-MM-dd HH:mm:ss'))
 
     $identity = Get-MachineGitIdentity
-    $author = [string](Get-Cfg $config 'report.authorFilter' '')
-    if ([string]::IsNullOrWhiteSpace($author)) { $author = $identity.Email }
+    $authorRaw = [string](Get-Cfg $config 'report.authorFilter' '')
+    if ([string]::IsNullOrWhiteSpace($authorRaw)) { $authorRaw = $identity.Email }
+    $authors = @($authorRaw -split '[|,;]' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 
     # 活动窗口：昨天 00:00 ~ 现在（覆盖前一天的工作 + 当天凌晨的改动）
     $windowStart = $now.Date.AddDays(-1)
@@ -178,7 +179,7 @@ try {
 
     foreach ($repo in $repos) {
         try {
-            $info = Get-RepoInfo -Repo $repo.Path -Start $windowStart -End $windowEnd -Author $author -ExcludePatterns $excludePatterns
+            $info = Get-RepoInfo -Repo $repo.Path -Start $windowStart -End $windowEnd -Author $authors -ExcludePatterns $excludePatterns
         } catch {
             Write-Log ('采集失败 [{0}]: {1}' -f $repo.Name, $_.Exception.Message) 'WARN'
             continue

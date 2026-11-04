@@ -390,7 +390,7 @@ function Get-RepoCommits {
         [string]$Repo,
         [datetime]$Start,
         [datetime]$End,
-        [string]$Author = ''
+        [string[]]$Author = @()
     )
     $sep = [char]9
     $pretty = '--pretty=format:%h' + $sep + '%ad' + $sep + '%s'
@@ -401,7 +401,10 @@ function Get-RepoCommits {
         ('--since={0}' -f $Start.ToString('yyyy-MM-dd HH:mm:ss')),
         ('--until={0}' -f $End.ToString('yyyy-MM-dd HH:mm:ss'))
     )
-    if ($Author) { $gitArgs += ('--author={0}' -f $Author) }
+    # 支持多个作者（git log 多个 --author 之间是 OR 关系；不要拼成 a|b 正则）
+    foreach ($a in @($Author)) {
+        if (-not [string]::IsNullOrWhiteSpace($a)) { $gitArgs += ('--author={0}' -f $a) }
+    }
 
     $text = Get-GitText -Repo $Repo -Arguments $gitArgs -AllowFail
     $commits = [System.Collections.Generic.List[object]]::new()
@@ -440,7 +443,7 @@ function Get-RepoInfo {
         [string]$Repo,
         [datetime]$Start,
         [datetime]$End,
-        [string]$Author = '',
+        [string[]]$Author = @(),
         [string[]]$ExcludePatterns = @()
     )
     $branch = Get-RepoBranch -Repo $Repo
